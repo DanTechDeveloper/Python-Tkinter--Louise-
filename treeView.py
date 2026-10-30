@@ -29,11 +29,27 @@ class TreeView:
         self.create_label("Table")
         self.dataTable = self.create_table(["Student-ID", "Student Name", "Student Course", "Student Year"])
         self.tableData = []
-        self.insert()
         for i in self.dataTable.get_children():
             self.tableData.append(self.dataTable.item(i, "values"))
+            
+    def delete(self):
+        selectedRow = self.dataTable.selection()
         
+        if not selectedRow:
+            self.messageInfo("Error", "Please select a row to delete")
+            return
         
+        if (self.messageYesOrNo("Deleting Data Row?", "Are you sure you want to delete this student information")):
+            oldData = self.dataTable.item(selectedRow[0], "values")
+            self.dataTable.delete(selectedRow)
+            for i in range(len(self.tableData)):
+                if self.tableData[i] == oldData:
+                    del self.tableData[i]
+                    break
+            self.messageInfo("Success", "Student information deleted successfully")
+        else:
+            self.messageInfo("Cancelled", "Student information not deleted")
+            
     def add(self):
         studentID = self.studentIdTextBox.get()
         studentName = self.studentNameTextBox.get()
@@ -43,6 +59,8 @@ class TreeView:
         if studentID != "" and studentName != "" and studentCourse != "" and studentYear != "":
             if (self.messageYesOrNo("Confirm", "Are you sure you want to add this student?")):
                 self.dataTable.insert("", "end", values=(studentID, studentName, studentCourse, studentYear))
+                self.tableData.append((studentID, studentName, studentCourse, studentYear))
+                print(self.tableData)
                 self.messageInfo("Success", "Student added successfully")
             else:
                 self.messageInfo("Cancelled", "Student not added")
@@ -63,7 +81,16 @@ class TreeView:
         
         if studentID != "" and studentName != "" and studentCourse != "" and studentYear != "":
             if (self.messageYesOrNo("Confirm", "Are you sure you want to update this student?")):
-                self.dataTable.item(selectedRow, values=(studentID, studentName, studentCourse, studentYear))
+                oldDataSelection = self.dataTable.item(selectedRow[0], "values")
+                self.dataTable.item(selectedRow[0], values=(studentID, studentName, studentCourse, studentYear))
+                if selectedRow:
+                    for i in range(len(self.tableData)):
+                        if self.tableData[i] == oldDataSelection:
+                            self.tableData[i] = (studentID, studentName, studentCourse, studentYear)
+                            break
+                    
+                    
+                
                 self.messageInfo("Success", "Student updated successfully")
             else:
                 self.messageInfo("Cancelled", "Student not updated")
@@ -73,15 +100,21 @@ class TreeView:
         
     def search(self):
         searchResult = self.searchBar.get()
-       
+        found = False
         for i in self.dataTable.get_children():
             self.dataTable.delete(i)
             
         for i in self.tableData:
-            if searchResult.lower() == i[1].lower() or searchResult.lower() == i[2].lower():
+            if searchResult.lower() == i[1].lower() or searchResult.lower() == i[2].lower() or searchResult.lower() == i[3].lower():
                 self.dataTable.insert("","end", values=i)
+                found = True
             else:
                 continue
+            
+        if (found):
+            self.messageInfo("Success", "Student Found!")
+        else:
+            self.messageInfo("Not Found", "Student Not Found!") 
            
     
       
@@ -113,14 +146,7 @@ class TreeView:
             self.table.heading(column[i], text=column[i])
         self.table.pack()
         return self.table
-    
-    def insert(self):
-         self.dataTable.insert("", "end", values=(1, "Ariz", 90))
-         self.dataTable.insert("", "end", values=(2, "Uncle Dags", 90))
-         self.dataTable.insert("", "end", values=(3, "Briz", 95))
-         self.dataTable.insert("", "end", values=(4, "Criz", 100))
-         self.dataTable.pack()
-         return self.dataTable
+
 
         
    
